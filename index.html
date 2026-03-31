@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>System Security Alert</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Rajdhani:wght@500;600;700&display=swap');
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --c-bg:#06080a;--c-panel:#0b0e12;--c-border:#1a2030;--c-border2:#0f1520;
+  --c-red:#e8334a;--c-red-dim:#7a1828;--c-red-glow:rgba(232,51,74,0.15);
+  --c-orange:#e87c33;--c-yellow:#e8c433;--c-green:#33e87a;
+  --c-text:#8899aa;--c-text2:#55667a;--c-text3:#2a3545;--c-white:#ccd8e8;
+  --mono:'IBM Plex Mono',monospace;--head:'Rajdhani',sans-serif;
+}
+
+html,body{width:100%;height:100%;background:var(--c-bg);color:var(--c-text);
+  font-family:var(--mono);font-size:13px;overflow:hidden;
+  -webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;}
+
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.07) 3px,rgba(0,0,0,0.07) 4px);
+  pointer-events:none;z-index:998;}
+
+#app{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;z-index:10;padding-bottom:40px;}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;background:var(--c-panel);
+  border-bottom:1px solid var(--c-border);position:sticky;top:0;z-index:50;}
+.tb-left{display:flex;align-items:center;gap:10px;}
+.tb-logo{width:22px;height:22px;border:1.5px solid var(--c-red);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--c-red);font-size:10px;font-weight:600;}
+.tb-name{font-family:var(--head);font-size:13px;font-weight:700;
+  color:var(--c-white);letter-spacing:1px;}
+.tb-right{display:flex;align-items:center;gap:12px;}
+.tb-id{text-align:right;}
+.tb-id-lbl{font-size:8px;color:var(--c-text3);letter-spacing:2px;display:block;}
+.tb-id-val{font-size:11px;color:var(--c-text);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--c-red);
+  box-shadow:0 0 6px var(--c-red);animation:blink 1.2s ease-in-out infinite;}
+@keyframes blink{50%{opacity:.25;}}
+
+/* MAIN */
+.main{max-width:480px;margin:0 auto;padding:16px 14px;
+  display:flex;flex-direction:column;gap:12px;}
+
+/* ALERT HEADER */
+.alert-hdr{background:var(--c-red-glow);border:1px solid var(--c-red-dim);
+  border-left:3px solid var(--c-red);padding:14px 16px;position:relative;overflow:hidden;}
+.alert-hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--c-red),transparent);}
+.alert-tag{font-size:9px;letter-spacing:4px;color:var(--c-red);margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;}
+.alert-tag::before{content:'▶';font-size:7px;}
+.alert-title{font-family:var(--head);font-size:clamp(18px,5.5vw,26px);
+  font-weight:700;color:#fff;line-height:1.1;margin-bottom:4px;}
+.alert-sub{font-size:11px;color:var(--c-text);line-height:1.5;}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:1px;background:var(--c-border2);border:1px solid var(--c-border);}
+.metric{background:var(--c-panel);padding:10px 12px;}
+.m-lbl{font-size:8px;letter-spacing:2px;color:var(--c-text3);margin-bottom:5px;}
+.m-val{font-family:var(--head);font-size:clamp(12px,4vw,16px);font-weight:700;line-height:1;}
+.m-val.red{color:var(--c-red);}.m-val.orange{color:var(--c-orange);}
+.m-val.dim{color:var(--c-text2);font-size:10px;font-family:var(--mono);}
+.m-sub{font-size:9px;color:var(--c-text3);margin-top:3px;}
+
+/* TIMER */
+.timer-block{background:var(--c-panel);border:1px solid var(--c-border);
+  padding:18px 16px;text-align:center;position:relative;overflow:hidden;}
+.timer-block::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--c-red),transparent);
+  animation:scanH 2.5s linear infinite;}
+@keyframes scanH{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+.t-lbl{font-size:9px;letter-spacing:3px;color:var(--c-text3);margin-bottom:8px;}
+.timer{font-family:var(--head);font-size:clamp(50px,16vw,80px);font-weight:700;
+  color:var(--c-red);letter-spacing:4px;line-height:1;
+  text-shadow:0 0 30px rgba(232,51,74,.2);animation:tFlicker 1s ease-in-out infinite;}
+@keyframes tFlicker{0%,100%,48%,52%{opacity:1;}50%{opacity:.8;}}
+.t-note{font-size:10px;color:var(--c-text2);margin-top:8px;letter-spacing:1px;}
+
+/* ENC PROGRESS */
+.enc-block{background:var(--c-panel);border:1px solid var(--c-border);padding:14px 16px;}
+.enc-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
+.enc-lbl{font-size:10px;letter-spacing:2px;color:var(--c-text2);}
+.enc-pct{font-family:var(--head);font-size:20px;font-weight:700;color:var(--c-orange);}
+.bar{height:4px;background:var(--c-border2);margin-bottom:8px;overflow:hidden;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--c-red-dim),var(--c-red));
+  box-shadow:0 0 8px var(--c-red);transition:width .4s ease;}
+.enc-bot{display:flex;justify-content:space-between;font-size:9px;color:var(--c-text3);}
+
+/* INFO PANEL */
+.info-panel{background:var(--c-panel);border:1px solid var(--c-border);padding:14px 16px;}
+.info-sec{margin-bottom:12px;}.info-sec:last-child{margin-bottom:0;}
+.info-key{font-size:8px;letter-spacing:3px;color:var(--c-text3);margin-bottom:6px;
+  display:flex;align-items:center;gap:6px;}
+.info-key::after{content:'';flex:1;height:1px;background:var(--c-border2);}
+.info-row{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;border-bottom:1px solid var(--c-border2);font-size:11px;}
+.info-row:last-child{border-bottom:none;}
+.ir-k{color:var(--c-text2);}.ir-v{color:var(--c-white);font-size:10px;text-align:right;max-width:55%;}
+.ir-v.red{color:var(--c-red);}.ir-v.orange{color:var(--c-orange);}.ir-v.yellow{color:var(--c-yellow);}
+
+/* TERMINAL */
+.terminal{background:#050709;border:1px solid var(--c-border);
+  padding:12px 14px;font-size:10px;line-height:1.65;color:var(--c-text2);
+  max-height:128px;overflow:hidden;position:relative;}
+.term-hdr{font-size:8px;letter-spacing:3px;color:var(--c-text3);margin-bottom:8px;
+  display:flex;gap:8px;align-items:center;}
+.term-hdr::before{content:'●';color:var(--c-red);font-size:7px;}
+.tl{display:block;}.tl .tt{color:var(--c-text3);}.tl .te{color:var(--c-red);}
+.tl .tok{color:var(--c-green);}.tl .tw{color:var(--c-orange);}
+.cursor{display:inline-block;width:7px;height:12px;background:var(--c-text2);
+  animation:cblink 1s step-end infinite;vertical-align:middle;margin-left:2px;}
+@keyframes cblink{50%{opacity:0;}}
+
+/* REQ BLOCK */
+.req-block{background:var(--c-panel);border:1px solid var(--c-border);}
+.req-hdr{padding:10px 16px;border-bottom:1px solid var(--c-border);
+  font-size:9px;letter-spacing:3px;color:var(--c-text3);
+  display:flex;align-items:center;gap:8px;}
+.req-hdr::before{content:'■';color:var(--c-red);font-size:7px;}
+.req-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;
+  border-bottom:1px solid var(--c-border2);transition:opacity .3s;}
+.req-item:last-child{border-bottom:none;}
+.req-item.done{opacity:.35;}
+.req-item.done .req-n{background:var(--c-green);color:#000;border-color:var(--c-green);}
+.req-item.done .req-t{text-decoration:line-through;color:var(--c-text3);}
+.req-n{width:20px;height:20px;border-radius:50%;border:1px solid var(--c-red-dim);
+  color:var(--c-red);font-size:9px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .3s;}
+.req-t{font-size:11px;color:var(--c-text);line-height:1.65;}
+.req-t b{color:var(--c-white);}
+.steps{display:flex;gap:4px;padding:0 16px 14px;}
+.step{flex:1;height:3px;background:var(--c-border2);transition:background .4s;}
+.step.done{background:var(--c-red);}
+.step.active{background:var(--c-orange);animation:spulse 1s ease-in-out infinite;}
+@keyframes spulse{50%{opacity:.4;}}
+
+/* ACTIONS */
+.actions{display:flex;flex-direction:column;gap:8px;}
+.btn-p{width:100%;background:transparent;border:1px solid var(--c-red);
+  color:var(--c-red);font-family:var(--head);font-weight:600;font-size:14px;
+  letter-spacing:2px;padding:15px 20px;cursor:pointer;position:relative;overflow:hidden;
+  transition:color .25s;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;text-transform:uppercase;}
+.btn-p::before{content:'';position:absolute;inset:0;background:var(--c-red);
+  transform:scaleX(0);transform-origin:left;transition:transform .25s;z-index:-1;}
+.btn-p:active::before{transform:scaleX(1);}.btn-p:active{color:#000;}
+.btn-s{width:100%;background:transparent;border:1px solid var(--c-border);
+  color:var(--c-text2);font-family:var(--mono);font-size:11px;letter-spacing:1px;
+  padding:11px 16px;cursor:pointer;transition:border-color .25s,color .25s;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.btn-s:active{border-color:var(--c-text);color:var(--c-white);}
+.btn-s.armed{border-color:var(--c-orange);color:var(--c-orange);}
+
+/* FOOTER */
+.footer{text-align:center;padding:0 16px;font-size:9px;
+  color:var(--c-text3);letter-spacing:1px;line-height:2;}
+
+/* FREEDOM */
+#fs{display:none;position:fixed;inset:0;background:var(--c-bg);z-index:500;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;padding:30px 20px;overflow:hidden;}
+#fs.show{display:flex;}
+.f-icon{width:72px;height:72px;border:2px solid var(--c-green);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:30px;
+  box-shadow:0 0 30px rgba(51,232,122,.25);
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{0%{transform:scale(0);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.f-title{font-family:var(--head);font-size:clamp(22px,7vw,36px);font-weight:700;
+  color:var(--c-green);text-align:center;letter-spacing:2px;}
+.f-key{font-family:var(--mono);font-size:10px;color:var(--c-text3);word-break:break-all;
+  text-align:center;max-width:300px;padding:10px 14px;
+  border:1px solid var(--c-border);background:var(--c-panel);letter-spacing:1px;}
+.f-msg{color:var(--c-text2);text-align:center;font-size:12px;
+  max-width:320px;line-height:1.85;}
+.f-msg .reveal{color:var(--c-white);}
+.cw{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
+.cp{position:absolute;width:6px;height:6px;top:-10px;animation:cf linear forwards;}
+@keyframes cf{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-logo">⚠</div>
+      <div class="tb-name">SECUREALERT</div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-id">
+        <span class="tb-id-lbl">ALERT ID</span>
+        <span class="tb-id-val" id="alert-id">—</span>
+      </div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="alert-hdr">
+      <div class="alert-tag">RANSOMWARE DETECTED · SEVERITY: CRITICAL</div>
+      <div class="alert-title">YOUR DEVICE<br>HAS BEEN LOCKED</div>
+      <div class="alert-sub">An unauthorized encryption process is actively running. All personal data is being secured with military-grade AES-256 encryption protocol.</div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="m-lbl">THREAT</div>
+        <div class="m-val red">CRIT</div>
+        <div class="m-sub">Level 5/5</div>
+      </div>
+      <div class="metric">
+        <div class="m-lbl">FILES</div>
+        <div class="m-val orange" id="file-count">0</div>
+        <div class="m-sub">at risk</div>
+      </div>
+      <div class="metric">
+        <div class="m-lbl">YOUR IP</div>
+        <div class="m-val dim" id="ip-val">...</div>
+        <div class="m-sub">exposed</div>
+      </div>
+    </div>
+
+    <div class="timer-block">
+      <div class="t-lbl">TIME REMAINING BEFORE PERMANENT LOCK</div>
+      <div class="timer" id="timer">10:00</div>
+      <div class="t-note">Decryption key will be destroyed after this deadline</div>
+    </div>
+
+    <div class="enc-block">
+      <div class="enc-top">
+        <span class="enc-lbl">ENCRYPTION PROGRESS</span>
+        <span class="enc-pct" id="enc-pct">0%</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="enc-bar" style="width:0%"></div></div>
+      <div class="enc-bot">
+        <span id="enc-done">0 files encrypted</span>
+        <span id="enc-rem">scanning...</span>
+      </div>
+    </div>
+
+    <div class="info-panel">
+      <div class="info-sec">
+        <div class="info-key">DEVICE INFORMATION</div>
+        <div class="info-row"><span class="ir-k">Device ID</span><span class="ir-v" id="dev-id">—</span></div>
+        <div class="info-row"><span class="ir-k">Platform</span><span class="ir-v" id="dev-plat">—</span></div>
+        <div class="info-row"><span class="ir-k">Network</span><span class="ir-v red">COMPROMISED</span></div>
+        <div class="info-row"><span class="ir-k">Cipher</span><span class="ir-v orange">AES-256-CBC · ACTIVE</span></div>
+      </div>
+      <div class="info-sec">
+        <div class="info-key">ATTACK VECTOR</div>
+        <div class="info-row"><span class="ir-k">Entry point</span><span class="ir-v yellow">NFC · RFID TAG</span></div>
+        <div class="info-row"><span class="ir-k">Payload</span><span class="ir-v red">STAGE-3 DEPLOYED</span></div>
+        <div class="info-row"><span class="ir-k">C2 Server</span><span class="ir-v" id="c2-ip">—</span></div>
+        <div class="info-row"><span class="ir-k">Connection</span><span class="ir-v red">ACTIVE · ENCRYPTED</span></div>
+      </div>
+    </div>
+
+    <div class="terminal">
+      <div class="term-hdr">LIVE SYSTEM LOG</div>
+      <div id="term-lines"></div>
+      <span class="cursor"></span>
+    </div>
+
+    <div class="req-block">
+      <div class="req-hdr">UNLOCK REQUIREMENTS</div>
+      <div class="req-item" id="r1">
+        <div class="req-n">1</div>
+        <div class="req-t">Acknowledge the security breach and accept the terms of the unlock protocol</div>
+      </div>
+      <div class="req-item" id="r2">
+        <div class="req-n">2</div>
+        <div class="req-t">Verify device ownership — <b>say your name out loud</b> and confirm</div>
+      </div>
+      <div class="req-item" id="r3">
+        <div class="req-n">3</div>
+        <div class="req-t">Complete biometric check — <b>look directly at the camera</b> for 3 seconds</div>
+      </div>
+      <div class="steps">
+        <div class="step active" id="s1"></div>
+        <div class="step" id="s2"></div>
+        <div class="step" id="s3"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-p" id="btn-main" onclick="handleStep()">CONFIRM &amp; PROCEED</button>
+      <button class="btn-s" id="btn-snd" onclick="toggleAlarm()">▶ ENABLE ALERT SOUND</button>
+    </div>
+
+    <div class="footer">
+      ALERT-<span id="ft-id">—</span> · <span id="ft-ts">—</span><br>
+      DO NOT CLOSE THIS WINDOW · DO NOT RESTART YOUR DEVICE
+    </div>
+
+  </div>
+</div>
+
+<!-- FREEDOM -->
+<div id="fs">
+  <div class="cw" id="confetti"></div>
+  <div class="f-icon">✓</div>
+  <div class="f-title">ACCESS RESTORED</div>
+  <div class="f-key" id="dec-key">DECRYPT KEY: ████████████████</div>
+  <div class="f-msg">
+    All files have been successfully decrypted.<br>
+    Device access fully restored.<br><br>
+    <span class="reveal">...Это была шутка 😄<br>Всё в порядке — NFC сработала!</span>
+  </div>
+  <button class="btn-p" onclick="location.reload()" style="max-width:280px;border-color:var(--c-green);color:var(--c-green);">
+    RUN AGAIN
+  </button>
+</div>
+
+<script>
+// FULLSCREEN
+function tryFS(){const e=document.documentElement,r=e.requestFullscreen||e.webkitRequestFullscreen||e.mozRequestFullScreen;if(r)r.call(e).catch(()=>{});}
+document.addEventListener('touchstart',tryFS,{once:true});
+document.addEventListener('click',tryFS,{once:true});
+
+// HELPERS
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const hex=n=>[...Array(n)].map(()=>rnd(0,15).toString(16)).join('').toUpperCase();
+
+// IDs
+const aid=hex(4)+'-'+hex(4);
+document.getElementById('alert-id').textContent=aid;
+document.getElementById('ft-id').textContent=aid;
+document.getElementById('dev-id').textContent=hex(3)+'-'+hex(4)+'-'+hex(3);
+document.getElementById('dec-key').textContent='DECRYPT KEY: '+hex(32);
+const ip=Array.from({length:4},()=>rnd(1,254)).join('.');
+document.getElementById('ip-val').textContent=ip;
+document.getElementById('c2-ip').textContent='195.'+rnd(100,220)+'.'+rnd(10,99)+'.'+rnd(1,254);
+const ua=navigator.userAgent;
+document.getElementById('dev-plat').textContent=/iPhone|iPad/.test(ua)?'iOS · WEBKIT':/Android/.test(ua)?'ANDROID · CHROME':'UNKNOWN';
+document.getElementById('ft-ts').textContent=new Date().toISOString().replace('T',' ').substring(0,19)+' UTC';
+
+// FILE COUNT
+let fc=0;const ftgt=rnd(4200,9800);
+const fi=setInterval(()=>{fc=Math.min(fc+rnd(80,200),ftgt);document.getElementById('file-count').textContent=fc.toLocaleString();if(fc>=ftgt)clearInterval(fi);},120);
+
+// TIMER
+let tl=600;const tel=document.getElementById('timer');
+const ti=setInterval(()=>{
+  tl=Math.max(0,tl-1);
+  tel.textContent=String(Math.floor(tl/60)).padStart(2,'0')+':'+String(tl%60).padStart(2,'0');
+  if(tl<=120)tel.style.color='var(--c-orange)';
+  if(tl<=30)tel.style.color='var(--c-yellow)';
+  if(tl<=0){clearInterval(ti);tl=600;tel.style.color='var(--c-red)';}
+},1000);
+
+// ENCRYPTION
+let ep=0;const etgt=rnd(72,89);
+const ei=setInterval(()=>{
+  ep=Math.min(ep+Math.random()*.4,etgt);
+  const p=ep.toFixed(1);
+  document.getElementById('enc-pct').textContent=p+'%';
+  document.getElementById('enc-bar').style.width=p+'%';
+  const done=Math.floor(fc*ep/100);
+  document.getElementById('enc-done').textContent=done.toLocaleString()+' files encrypted';
+  document.getElementById('enc-rem').textContent=(fc-done).toLocaleString()+' remaining';
+  if(ep>=etgt)clearInterval(ei);
+},300);
+
+// TERMINAL
+const logs=[
+  ['ok','Connection established → C2:'+rnd(100,220)+'.'+rnd(10,99)+'.'+rnd(1,254)],
+  ['log','Payload STAGE-1 executed successfully'],
+  ['log','Enumerating filesystem... '+rnd(4000,9000)+' objects found'],
+  ['err','Firewall bypass: SUCCESS'],
+  ['log','Generating AES-256 session key...'],
+  ['ok','Key generated: '+hex(8)+'...'],
+  ['log','Encryption process started'],
+  ['warn','User notification triggered'],
+  ['log','Reading contacts database...'],
+  ['log','Accessing location history...'],
+  ['err','System termination attempt BLOCKED'],
+  ['warn','Timer countdown initiated: 10:00'],
+  ['log','Waiting for authentication...'],
+];
+let li=0;const te=document.getElementById('term-lines');
+function addLog(){
+  if(li>=logs.length)return;
+  const[type,msg]=logs[li++];
+  const s=document.createElement('span');s.className='tl';
+  const t=new Date().toTimeString().substring(0,8);
+  const c=type==='err'?'te':type==='ok'?'tok':type==='warn'?'tw':'';
+  s.innerHTML=`<span class="tt">[${t}]</span> <span class="${c}">${msg}</span>`;
+  te.appendChild(s);
+  const lines=te.querySelectorAll('.tl');
+  if(lines.length>6)lines[0].remove();
+}
+addLog();setInterval(addLog,2800);
+
+// STEPS
+let step=0;
+const stepCfg=[
+  {id:'r1',sid:'s1',btn:'CONFIRM STEP 1 OF 3'},
+  {id:'r2',sid:'s2',btn:'CONFIRM STEP 2 OF 3'},
+  {id:'r3',sid:'s3',btn:'CONFIRM STEP 3 OF 3 — UNLOCK'},
+];
+function handleStep(){
+  if(step>=stepCfg.length){showFreedom();return;}
+  const{id,sid,btn}=stepCfg[step];
+  document.getElementById(id).classList.add('done');
+  document.getElementById(sid).classList.remove('active');
+  document.getElementById(sid).classList.add('done');
+  step++;
+  if(step<stepCfg.length){
+    const ns='s'+(step+1);
+    if(document.getElementById(ns))document.getElementById(ns).classList.add('active');
+    document.getElementById('btn-main').textContent=stepCfg[step].btn;
+  } else {
+    document.getElementById('btn-main').textContent='✓ INITIATING DECRYPTION...';
+    setTimeout(showFreedom,700);
+  }
+}
+
+// FREEDOM
+function showFreedom(){
+  stopAlarm();clearInterval(ti);
+  document.getElementById('fs').classList.add('show');
+  spawnConfetti();playWin();
+}
+function spawnConfetti(){
+  const cols=['#e8334a','#33e87a','#e8c433','#3380e8','#e833e8','#ffffff'];
+  const c=document.getElementById('confetti');
+  for(let i=0;i<60;i++)setTimeout(()=>{
+    const el=document.createElement('div');el.className='cp';
+    el.style.cssText=`left:${Math.random()*100}vw;background:${cols[rnd(0,cols.length-1)]};border-radius:${Math.random()>.5?'50%':'2px'};animation-duration:${1.4+Math.random()*2}s`;
+    c.appendChild(el);setTimeout(()=>el.remove(),4000);
+  },i*30);
+}
+
+// AUDIO
+let actx=null,alarmOn=false,atick=null;
+const getAC=()=>{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx;};
+function toggleAlarm(){alarmOn?stopAlarm():startAlarm();}
+function startAlarm(){
+  try{const c=getAC();if(c.state==='suspended')c.resume();
+    alarmOn=true;
+    document.getElementById('btn-snd').textContent='■ DISABLE ALERT SOUND';
+    document.getElementById('btn-snd').classList.add('armed');
+    loopA(c);}catch(e){}
+}
+function stopAlarm(){
+  alarmOn=false;clearTimeout(atick);
+  const b=document.getElementById('btn-snd');
+  if(b){b.textContent='▶ ENABLE ALERT SOUND';b.classList.remove('armed');}
+}
+function loopA(c){
+  if(!alarmOn)return;
+  [[960,.0],[720,.2],[960,.4],[720,.6]].forEach(([f,w])=>{
+    const o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.frequency.value=f;o.type='square';
+    const t=c.currentTime+w;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.08,t+.04);g.gain.linearRampToValueAtTime(0,t+.16);
+    o.start(t);o.stop(t+.18);
+  });
+  atick=setTimeout(()=>loopA(c),1200);
+}
+function playWin(){
+  try{const c=getAC();if(c.state==='suspended')c.resume();
+    [523,659,784,1047].forEach((f,i)=>{
+      const o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      o.frequency.value=f;o.type='sine';
+      const t=c.currentTime+i*.15;
+      g.gain.setValueAtTime(.25,t);g.gain.exponentialRampToValueAtTime(.001,t+.6);
+      o.start(t);o.stop(t+.6);
+    });}catch(e){}
+}
+document.body.addEventListener('touchstart',()=>{try{const c=getAC();if(c.state==='suspended')c.resume();}catch(e){}},{once:true});
+</script>
+</body>
+</html>
